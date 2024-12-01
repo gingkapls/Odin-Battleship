@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { Gameboard } from '../src/components/gameboard';
+import { Gameboard } from '../src/components/Gameboard';
 import { Ship } from '../src/components/Ship';
 import repeatCall from './repeatCall';
 
@@ -9,10 +9,13 @@ describe('place()', () => {
     const ship = new Ship(3);
     expect(gameboard.placeShip(ship, [0, 5])).toBe(true);
 
-    repeatCall(
-      (l: number) => expect(gameboard.board[0][5 + l]).toBe(ship),
-      ship.length,
-    );
+    expect(gameboard.board[0][5 + 0].ship).toBe(ship);
+    expect(gameboard.board[0][5 + 1].ship).toBe(ship);
+    expect(gameboard.board[0][5 + 2].ship).toBe(ship);
+    // repeatCall(
+      // (l: number) => expect(gameboard.board[5][5 + l].ship).toBe(ship),
+      // ship.length,
+    // );
   });
 
   it('does not place a ship out of bounds', () => {
@@ -76,5 +79,22 @@ describe('receiveAttack()', () => {
     repeatCall((i: number) => {
       expect(gameboard.receiveAttack([0, 0 + i])).toBe(true);
     }, ship.length);
+  });
+});
+
+// TODO: add tests
+describe.skip('allSunk()', () => {
+  it('returns false when no ships are sunk', () => {
+    const gameboard = new Gameboard();
+    gameboard.placeShip(new Ship(5), [0, 3]);
+    expect(gameboard.allSunk).toBe(false);
+  });
+
+  it('returns false when one ship is sunk', () => {
+    const gameboard = new Gameboard();
+    const ship = new Ship(5);
+    gameboard.placeShip(ship, [0, 3]);
+    repeatCall((i) => gameboard.receiveAttack([0, 3 + i]), ship.length);
+    expect(gameboard.allSunk).toBe(false);
   });
 });
