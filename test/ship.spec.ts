@@ -1,25 +1,32 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
-import { Ship } from '../src/components/Ship';
+import { describe, expect, it } from '@jest/globals';
+import { Ship, ShipType } from '../src/components/Ship';
 import repeatCall from './repeatCall';
+
+const setup = (type: ShipType, hits: number = 0) => {
+  const ship = new Ship(type);
+  return {
+    ship,
+    length: ship.length,
+    hits,
+  };
+};
 
 describe('hit()', () => {
   it('takes 1 hit', () => {
-    const ship = new Ship(5);
+    const { length, ship } = setup('Submarine');
     ship.hit();
     expect(ship.hits).toBe(1);
   });
 
   it('takes 2 hits', () => {
-    const numHits = 2;
-    const ship = new Ship(5);
-    repeatCall(() => ship.hit(), numHits);
+    const { ship, length, hits } = setup('Submarine');
+    repeatCall(() => ship.hit(), hits);
 
-    expect(ship.hits).toBe(numHits);
+    expect(ship.hits).toBe(hits);
   });
 
   it('takes no more than length hits', () => {
-    const length = 5;
-    const ship = new Ship(length);
+    const { length, ship } = setup('Carrier');
     repeatCall(() => ship.hit(), length + 1);
 
     expect(ship.hits).toBe(length);
@@ -28,20 +35,18 @@ describe('hit()', () => {
 
 describe('sink()', () => {
   it('does not sink by default', () => {
-    expect(new Ship(3).isSunk).toBe(false);
+    expect(new Ship('Submarine').isSunk).toBe(false);
   });
 
   it('does not sink with less than length hits', () => {
-    const length = 3;
-    const ship = new Ship(length);
+    const { ship } = setup('Carrier');
     ship.hit();
     expect(ship.isSunk).toBe(false);
   });
 
   it('sinks with enough hits', () => {
-    const length = 3;
-    const ship = new Ship(length);
-    repeatCall(() => ship.hit(), length + 1);
+    const { length, ship } = setup('Carrier');
+    repeatCall(() => ship.hit(), length);
 
     expect(ship.isSunk).toBe(true);
   });
