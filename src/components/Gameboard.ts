@@ -12,6 +12,8 @@ class Cell {
 
 type Pos = [number, number];
 
+export type shipOrientation = 'vertical' | 'horizontal';
+
 export class Gameboard {
   #board: Cell[][];
   #rows: number;
@@ -30,42 +32,80 @@ export class Gameboard {
     return Object.freeze(this.#board);
   }
 
+  /**
+   *
+   * @param n {number} Number to test
+   * @param min {number} Lower bound(inclusive)
+   * @param max {number} Upper bound(exclusive)
+   * @returns
+   */
+  static #isInRange(n: number, [min, max]: [number, number]) {
+    return n >= min && n < max;
+  }
+
   #isValidPos([x, y]: Pos) {
-    return x < this.#rows && y < this.#cols;
+    return (
+      Gameboard.#isInRange(x, [0, this.#rows]) &&
+      Gameboard.#isInRange(y, [0, this.#cols])
+    );
   }
 
   #isCellEmpty([x, y]: Pos): boolean {
     return this.#board.at(x).at(y).ship === null;
   }
 
-  isAreaEmpty([x, y]: Pos, length: number) {
+  isAreaEmpty([xStart, yStart]: Pos, [xEnd, yEnd]: Pos) {
     // Check for neighbouring ships
     // 1 row above and below ship
-    for (let row = x - 1; row < x + 1; ++row) {
+    // Use <= because start will be equal to end for 1 unit width
+    for (let row = xStart - 1; row <= xEnd + 1; ++row) {
       // 1 cell before and after ship's length
-      for (let col = y - 1; col < y + length + 1; ++col) {
+      for (let col = yStart - 1; col <= yEnd + 1; ++col) {
         if (
-          !this.#isValidPos([row, col]) || // out of bounds
-          (this.#isValidPos([row, col]) && !this.#isCellEmpty([row, col])) // within bounds and occupied
+          this.#isValidPos([row, col]) && // within bounds
+          !this.#isCellEmpty([row, col]) // is occupied
         ) {
           return false;
         }
       }
     }
-    return true;
-  }
 
-  placeShip(ship: Ship, [x, y]: Pos): boolean {
-    if (!this.isAreaEmpty([x, y], ship.length)) return false;
-    const cell = this.#board.at(x).at(y);
-
-    for (let col = y, row = x; col < y + ship.length; ++col) {
-      this.#board.at(row).at(col).ship = ship;
+    // Check ship's area
+    for (let row = xStart; row <= xEnd; ++row) {
+      for (let col = yStart; col <= yEnd; ++col) {
+        if (!this.#isValidPos([row, col])) return false;
+      }
     }
     return true;
   }
 
+  placeShip(ship: Ship, [x, y]: Pos, orientation: shipOrientation): boolean {
+    let areaStart: Pos;
+    let areaEnd: Pos;
+
+    // length - 1 because 0 indexing
+    if (orientation === 'horizontal') {
+      areaStart = [x, y];
+      areaEnd = [x, y + ship.length - 1];
+    } else {
+      areaStart = [x, y];
+      areaEnd = [x + ship.length - 1, y];
+    }
+
+    if (!this.isAreaEmpty(areaStart, areaEnd)) return false;
+
+    for (let row = areaStart[0]; row <= areaEnd[0]; ++row) {
+      for (let col = areaStart[1]; col <= areaEnd[1]; ++col) {
+        this.#board.at(row).at(col).ship = ship;
+      }
+    }
+
+    return true;
+  }
+
   receiveAttack([x, y]: Pos): boolean {
+    if (!this.#isValidPos([x, y])) return false;
+
     const pos = this.#board.at(x).at(y);
     if (pos.ship === null || pos.isHit === true) return false;
 
