@@ -80,18 +80,15 @@ export class Gameboard {
   }
 
   placeShip(ship: Ship, [x, y]: Pos, orientation: shipOrientation): boolean {
-    let areaStart: Pos;
-    let areaEnd: Pos;
+    const vectorized: { horizontal: Pos; vertical: Pos } = {
+      horizontal: [x, y + ship.length - 1],
+      vertical: [x + ship.length - 1, y],
+    };
 
-    // length - 1 because 0 indexing
-    if (orientation === 'horizontal') {
-      areaStart = [x, y];
-      areaEnd = [x, y + ship.length - 1];
-    } else {
-      areaStart = [x, y];
-      areaEnd = [x + ship.length - 1, y];
-    }
+    const areaStart: Pos = [x, y];
+    const areaEnd: Pos = vectorized[orientation];
 
+    // length - 1 because our board is 0 indexing
     if (!this.isAreaEmpty(areaStart, areaEnd)) return false;
 
     for (let row = areaStart[0]; row <= areaEnd[0]; ++row) {
