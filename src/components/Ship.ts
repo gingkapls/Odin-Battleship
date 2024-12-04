@@ -1,25 +1,22 @@
 /**
  * @property {number} Length of ship 
  */
-const SHIP_TYPE = {
+const SHIP_LENGTH = {
   Carrier: 5,
   Battleship: 4,
   Destroyer: 3,
-  Submarine: 3,
-  PatrolBoat: 2,
+  Submarine: 2,
+  PatrolBoat: 1,
 } as const;
 
-type ObjectValues<T> = T[keyof T];
-
-export type ShipType = keyof typeof SHIP_TYPE; 
-
+export type ShipType = keyof typeof SHIP_LENGTH; 
 
 export class Ship {
   length: number;
   #hits: number;
 
   constructor(type: ShipType) {
-    this.length = SHIP_TYPE[type];
+    this.length = SHIP_LENGTH[type];
     this.#hits = 0;
   }
 
