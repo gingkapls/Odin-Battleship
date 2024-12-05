@@ -4,7 +4,7 @@
     "noImplicitAny": true,
     "sourceMap": true,
     "module": "esnext",
-    "lib": ["esnext"],
+    "lib": ["esnext", "DOM"],
     "target": "es6",
     "jsx": "react",
     "allowJs": true,
