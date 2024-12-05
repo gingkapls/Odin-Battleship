@@ -103,13 +103,11 @@ export class Gameboard {
   receiveAttack([x, y]: Pos): boolean {
     if (!this.#isValidPos([x, y])) return false;
 
-    const pos = this.#board.at(x).at(y);
-    if (pos.ship === null || pos.isHit === true) return false;
+    const cell = this.#board.at(x).at(y);
+    if (cell.ship === null || cell.isHit === true) return false;
 
-    pos.ship.hit();
-    console.log(pos.isHit);
-    pos.isHit = true;
-    console.log(pos.isHit);
+    cell.ship.hit();
+    cell.isHit = true;
     return true;
   }
 
