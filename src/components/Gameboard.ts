@@ -14,10 +14,17 @@ type Pos = [number, number];
 
 export type shipOrientation = 'vertical' | 'horizontal';
 
+interface Location {
+  ship: Ship;
+  start: Pos;
+  end: Pos;
+}
+
 export class Gameboard {
   #board: Cell[][];
   #rows: number;
   #cols: number;
+  locations: Location[];
 
   constructor([rows, cols]: [number, number] = [10, 10]) {
     this.#rows = rows;
@@ -26,6 +33,7 @@ export class Gameboard {
     this.#board = Array.from({ length: rows }, () =>
       Array.from({ length: cols }, () => new Cell()),
     );
+    this.locations = [];
   }
 
   get board(): readonly Cell[][] {
