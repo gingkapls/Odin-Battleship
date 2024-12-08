@@ -51,6 +51,14 @@ export class Gameboard {
     return n >= min && n < max;
   }
 
+  #findShipByPos([x, y]: Pos): Location {
+    return this.locations.find(
+      (loc) =>
+        Gameboard.#isInRange(x, [loc.start[0], loc.end[0] + 1]) && // +1 because upper bound is exclusive
+        Gameboard.#isInRange(y, [loc.start[1], loc.end[1] + 1]), // x,y coords of ship
+    );
+  }
+
   #isValidPos([x, y]: Pos) {
     return (
       Gameboard.#isInRange(x, [0, this.#rows]) &&
@@ -87,14 +95,39 @@ export class Gameboard {
     return true;
   }
 
-  placeShip(ship: Ship, [x, y]: Pos, orientation: shipOrientation): boolean {
+  #registerShip(ship: Ship, start: Pos, end: Pos): void {
+    this.locations.push({ ship, start, end } as Location);
+  }
+
+  #deregisterShip(ship: Ship): void {
+    const idx = this.locations.findIndex((location) =>
+      Object.is(location.ship, ship),
+    );
+    this.locations = this.locations.toSpliced(idx, 1);
+  }
+
+  static #vectorizeCoords(
+    length: number,
+    [x, y]: Pos,
+    orientation: shipOrientation,
+  ) {
     const vectorized: { horizontal: Pos; vertical: Pos } = {
-      horizontal: [x, y + ship.length - 1],
-      vertical: [x + ship.length - 1, y],
+      horizontal: [x, y + length - 1],
+      vertical: [x + length - 1, y],
     };
 
-    const areaStart: Pos = [x, y];
-    const areaEnd: Pos = vectorized[orientation];
+    return {
+      areaStart: [x, y] as Pos,
+      areaEnd: vectorized[orientation] as Pos,
+    };
+  }
+
+  placeShip(ship: Ship, [x, y]: Pos, orientation: shipOrientation): boolean {
+    const { areaStart, areaEnd } = Gameboard.#vectorizeCoords(
+      ship.length,
+      [x, y],
+      orientation,
+    );
 
     // length - 1 because our board is 0 indexing
     if (!this.isAreaEmpty(areaStart, areaEnd)) return false;
@@ -104,6 +137,10 @@ export class Gameboard {
         this.#board.at(row).at(col).ship = ship;
       }
     }
+
+    this.#registerShip(ship, areaStart, areaEnd);
+    return true;
+  }
 
     return true;
   }
