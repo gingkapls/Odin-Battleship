@@ -142,6 +142,52 @@ export class Gameboard {
     return true;
   }
 
+  // TODO: do something about orientation
+  removeShip([x, y]: Pos): Location {
+    const location = this.#findShipByPos([x, y]);
+
+    const [xStart, yStart] = location.start;
+    const [xEnd, yEnd] = location.end;
+
+    // remove ship from board
+    for (let row = xStart; row <= xEnd; ++row) {
+      for (let col = yStart; col <= yEnd; ++col) {
+        this.#board.at(row).at(col).ship = null;
+      }
+    }
+
+    // remove ship from location array
+    this.#deregisterShip(location.ship);
+    return location;
+  }
+
+  static #getShipOrientation(
+    [xStart, yStart]: Pos,
+    [xEnd, yEnd]: Pos,
+  ): shipOrientation {
+    const length = Math.abs(xEnd - xStart);
+    const breadth = Math.abs(yEnd - yStart);
+
+    return length > breadth ? 'horizontal' : 'vertical';
+  }
+
+  moveShip([xSrc, ySrc]: Pos, [xDest, yDest]: Pos): boolean {
+    // Fetch ship details
+    const { ship, start, end } = this.#findShipByPos([xSrc, ySrc]);
+    const orientation = Gameboard.#getShipOrientation(start, end);
+
+    // Early return if destination area isn't empty
+    const { areaStart, areaEnd } = Gameboard.#vectorizeCoords(
+      ship.length,
+      [xDest, yDest],
+      orientation,
+    );
+    if (this.isAreaEmpty(areaStart, areaEnd) === false) {
+      return false;
+    }
+
+    this.removeShip([xSrc, ySrc]);
+    this.placeShip(ship, [xDest, yDest], orientation);
     return true;
   }
 
