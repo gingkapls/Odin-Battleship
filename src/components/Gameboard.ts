@@ -208,6 +208,4 @@ export class Gameboard {
     // return this.ships.some((ship) => !ship.isSunk);
     return false;
   }
-
-  ships: Ship[];
 }
