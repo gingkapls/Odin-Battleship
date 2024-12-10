@@ -51,32 +51,32 @@ export class Gameboard {
     return n >= min && n < max;
   }
 
-  #findShipByPos([x, y]: Pos): Location {
+  #findShipByPos([row, col]: Pos): Location {
     return this.locations.find(
       (loc) =>
-        Gameboard.#isInRange(x, [loc.start[0], loc.end[0] + 1]) && // +1 because upper bound is exclusive
-        Gameboard.#isInRange(y, [loc.start[1], loc.end[1] + 1]), // x,y coords of ship
+        Gameboard.#isInRange(row, [loc.start[0], loc.end[0] + 1]) && // +1 because upper bound is exclusive
+        Gameboard.#isInRange(col, [loc.start[1], loc.end[1] + 1]), // row,col coords of ship
     );
   }
 
-  #isValidPos([x, y]: Pos) {
+  #isValidPos([row, col]: Pos) {
     return (
-      Gameboard.#isInRange(x, [0, this.#rows]) &&
-      Gameboard.#isInRange(y, [0, this.#cols])
+      Gameboard.#isInRange(row, [0, this.#rows]) &&
+      Gameboard.#isInRange(col, [0, this.#cols])
     );
   }
 
-  #isCellEmpty([x, y]: Pos): boolean {
-    return this.#board.at(x).at(y).ship === null;
+  #isCellEmpty([row, col]: Pos): boolean {
+    return this.#board[row][col].ship === null;
   }
 
-  isAreaEmpty([xStart, yStart]: Pos, [xEnd, yEnd]: Pos) {
+  isAreaEmpty([rowStart, colStart]: Pos, [rowEnd, colEnd]: Pos) {
     // Check for neighbouring ships
     // 1 row above and below ship
     // Use <= because start will be equal to end for 1 unit width
-    for (let row = xStart - 1; row <= xEnd + 1; ++row) {
+    for (let row = rowStart - 1; row <= rowEnd + 1; ++row) {
       // 1 cell before and after ship's length
-      for (let col = yStart - 1; col <= yEnd + 1; ++col) {
+      for (let col = colStart - 1; col <= colEnd + 1; ++col) {
         if (
           this.#isValidPos([row, col]) && // within bounds
           !this.#isCellEmpty([row, col]) // is occupied
@@ -87,8 +87,8 @@ export class Gameboard {
     }
 
     // Check ship's area
-    for (let row = xStart; row <= xEnd; ++row) {
-      for (let col = yStart; col <= yEnd; ++col) {
+    for (let row = rowStart; row <= rowEnd; ++row) {
+      for (let col = colStart; col <= colEnd; ++col) {
         if (!this.#isValidPos([row, col])) return false;
       }
     }
@@ -108,24 +108,24 @@ export class Gameboard {
 
   static #vectorizeCoords(
     length: number,
-    [x, y]: Pos,
+    [row, col]: Pos,
     orientation: shipOrientation,
   ) {
     const vectorized: { horizontal: Pos; vertical: Pos } = {
-      horizontal: [x, y + length - 1],
-      vertical: [x + length - 1, y],
+      horizontal: [row, col + length - 1],
+      vertical: [row + length - 1, col],
     };
 
     return {
-      areaStart: [x, y] as Pos,
+      areaStart: [row, col] as Pos,
       areaEnd: vectorized[orientation] as Pos,
     };
   }
 
-  placeShip(ship: Ship, [x, y]: Pos, orientation: shipOrientation): boolean {
+  placeShip(ship: Ship, [row, col]: Pos, orientation: shipOrientation): boolean {
     const { areaStart, areaEnd } = Gameboard.#vectorizeCoords(
       ship.length,
-      [x, y],
+      [row, col],
       orientation,
     );
 
@@ -134,7 +134,7 @@ export class Gameboard {
 
     for (let row = areaStart[0]; row <= areaEnd[0]; ++row) {
       for (let col = areaStart[1]; col <= areaEnd[1]; ++col) {
-        this.#board.at(row).at(col).ship = ship;
+        this.#board[row][col].ship = ship;
       }
     }
 
@@ -143,16 +143,16 @@ export class Gameboard {
   }
 
   // TODO: do something about orientation
-  removeShip([x, y]: Pos): Location {
-    const location = this.#findShipByPos([x, y]);
+  removeShip([row, col]: Pos): Location {
+    const location = this.#findShipByPos([row, col]);
 
-    const [xStart, yStart] = location.start;
-    const [xEnd, yEnd] = location.end;
+    const [rowStart, colStart] = location.start;
+    const [rowEnd, colEnd] = location.end;
 
     // remove ship from board
-    for (let row = xStart; row <= xEnd; ++row) {
-      for (let col = yStart; col <= yEnd; ++col) {
-        this.#board.at(row).at(col).ship = null;
+    for (let row = rowStart; row <= rowEnd; ++row) {
+      for (let col = colStart; col <= colEnd; ++col) {
+        this.#board[row][col].ship = null;
       }
     }
 
@@ -162,43 +162,46 @@ export class Gameboard {
   }
 
   static #getShipOrientation(
-    [xStart, yStart]: Pos,
-    [xEnd, yEnd]: Pos,
+    [rowStart, colStart]: Pos,
+    [rowEnd, colEnd]: Pos,
   ): shipOrientation {
-    const length = Math.abs(xEnd - xStart);
-    const breadth = Math.abs(yEnd - yStart);
+    const height = Math.abs(rowEnd - rowStart);
+    const width = Math.abs(colEnd - colStart);
 
-    return length > breadth ? 'horizontal' : 'vertical';
+    return height < width ? 'horizontal' : 'vertical';
   }
 
-  moveShip([xSrc, ySrc]: Pos, [xDest, yDest]: Pos): boolean {
+  moveShip([rowSrc, colSrc]: Pos, [rowDest, colDest]: Pos): boolean {
     // Fetch ship details
-    const { ship, start, end } = this.#findShipByPos([xSrc, ySrc]);
+    const { ship, start, end } = this.#findShipByPos([rowSrc, colSrc]);
     const orientation = Gameboard.#getShipOrientation(start, end);
 
     // Early return if destination area isn't empty
     const { areaStart, areaEnd } = Gameboard.#vectorizeCoords(
       ship.length,
-      [xDest, yDest],
+      [rowDest, colDest],
       orientation,
     );
     if (this.isAreaEmpty(areaStart, areaEnd) === false) {
       return false;
     }
 
-    this.removeShip([xSrc, ySrc]);
-    this.placeShip(ship, [xDest, yDest], orientation);
+    this.removeShip([rowSrc, colSrc]);
+    this.placeShip(ship, [rowDest, colDest], orientation);
     return true;
   }
 
-  receiveAttack([x, y]: Pos): boolean {
-    if (!this.#isValidPos([x, y])) return false;
+  receiveAttack([row, col]: Pos): boolean {
+    // TODO: indicate missed hits
+    if (!this.#isValidPos([row, col])) return false;
 
-    const cell = this.#board.at(x).at(y);
-    if (cell.ship === null || cell.isHit === true) return false;
+    const cell = this.#board[row][col];
 
-    cell.ship.hit();
+    if (cell.isHit) return false;
+    
     cell.isHit = true;
+    if (cell.ship === null) return false;
+    cell.ship.hit();
     return true;
   }
 
