@@ -122,7 +122,11 @@ export class Gameboard {
     };
   }
 
-  placeShip(ship: Ship, [row, col]: Pos, orientation: shipOrientation): boolean {
+  placeShip(
+    ship: Ship,
+    [row, col]: Pos,
+    orientation: shipOrientation,
+  ): boolean {
     const { areaStart, areaEnd } = Gameboard.#vectorizeCoords(
       ship.length,
       [row, col],
@@ -176,17 +180,22 @@ export class Gameboard {
     const { ship, start, end } = this.#findShipByPos([rowSrc, colSrc]);
     const orientation = Gameboard.#getShipOrientation(start, end);
 
-    // Early return if destination area isn't empty
+    // Remove ship to handle the case where we overlap it with its original position
+    this.removeShip([rowSrc, colSrc]);
+
     const { areaStart, areaEnd } = Gameboard.#vectorizeCoords(
       ship.length,
       [rowDest, colDest],
       orientation,
     );
+
+    // Early return if destination area isn't empty
+    // Replace ship at original position
     if (this.isAreaEmpty(areaStart, areaEnd) === false) {
+      this.placeShip(ship, start, orientation);
       return false;
     }
 
-    this.removeShip([rowSrc, colSrc]);
     this.placeShip(ship, [rowDest, colDest], orientation);
     return true;
   }
@@ -198,7 +207,7 @@ export class Gameboard {
     const cell = this.#board[row][col];
 
     if (cell.isHit) return false;
-    
+
     cell.isHit = true;
     if (cell.ship === null) return false;
     cell.ship.hit();
