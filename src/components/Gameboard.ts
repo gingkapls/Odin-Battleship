@@ -1,14 +1,5 @@
 import { Ship } from './Ship';
-
-class Cell {
-  ship: Ship;
-  isHit: boolean;
-
-  constructor() {
-    this.ship = null;
-    this.isHit = false;
-  }
-}
+import { Cell } from './Cell';
 
 type Pos = [number, number];
 
