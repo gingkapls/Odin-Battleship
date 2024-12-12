@@ -4,6 +4,7 @@ import { Cell } from './Cell';
 type Pos = [number, number];
 
 export type ShipOrientation = 'vertical' | 'horizontal';
+type AttackResult = 'success' | 'miss' | 'invalid';
 
 interface Location {
   ship: Ship;
@@ -212,18 +213,19 @@ export class Gameboard {
     }
   }
 
-  receiveAttack([row, col]: Pos): boolean {
+  receiveAttack([row, col]: Pos): AttackResult {
     // TODO: indicate missed hits
-    if (!this.#isValidPos([row, col])) return false;
+    if (!this.#isValidPos([row, col])) return 'invalid';
 
     const cell = this.#board[row][col];
 
-    if (cell.isHit) return false;
+    if (cell.isHit) return 'invalid';
 
     cell.isHit = true;
-    if (cell.ship === null) return false;
+    if (cell.ship === null) return 'miss';
+
     cell.ship.hit();
-    return true;
+    return 'success';
   }
 
   get areAllSunk(): boolean {
