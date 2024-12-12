@@ -13,13 +13,13 @@ const setup = (type: ShipType, hits: number = 0) => {
 
 describe('hit()', () => {
   it('takes 1 hit', () => {
-    const { length, ship } = setup('Submarine');
+    const { ship } = setup('Submarine');
     ship.hit();
     expect(ship.hits).toBe(1);
   });
 
   it('takes 2 hits', () => {
-    const { ship, length, hits } = setup('Submarine');
+    const { ship, hits } = setup('Submarine');
     repeatCall(() => ship.hit(), hits);
 
     expect(ship.hits).toBe(hits);
