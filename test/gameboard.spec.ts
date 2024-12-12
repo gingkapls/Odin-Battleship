@@ -105,6 +105,89 @@ describe('receiveAttack()', () => {
   });
 });
 
+describe('removeShip', () => {
+  it('removes a ship', () => {
+    const { gameboard, ship, orientation } = setup('Destroyer', 'horizontal');
+    gameboard.placeShip(ship, [0, 0], orientation);
+
+    gameboard.removeShip([0, 0]);
+    expect(gameboard.board[0][0].ship).toBe(null);
+    expect(gameboard.board[0][1].ship).toBe(null);
+    expect(gameboard.board[0][2].ship).toBe(null);
+  });
+
+  it('returns a location object with the ship details', () => {
+    const { gameboard, ship, orientation } = setup('Destroyer', 'horizontal');
+    gameboard.placeShip(ship, [0, 0], orientation);
+
+    expect(gameboard.removeShip([0, 0])).toEqual({
+      ship,
+      start: [0, 0],
+      end: [0, 2],
+    });
+  });
+});
+
+describe('moveShip()', () => {
+  it('removes the ship from original coords', () => {
+    const { gameboard, ship, orientation } = setup('Destroyer', 'horizontal');
+
+    gameboard.placeShip(ship, [0, 0], orientation);
+
+    expect(gameboard.moveShip([0, 0], [5, 5])).toBe(true);
+
+    expect(gameboard.board[0][0].ship).toBe(null);
+    expect(gameboard.board[0][1].ship).toBe(null);
+    expect(gameboard.board[0][2].ship).toBe(null);
+  });
+
+  it('moves the ship to the new coords', () => {
+    const { gameboard, ship, orientation } = setup('Destroyer', 'horizontal');
+
+    gameboard.placeShip(ship, [0, 0], orientation);
+
+    expect(gameboard.moveShip([0, 0], [5, 5])).toBe(true);
+
+    expect(gameboard.board[5][5].ship).toBe(ship);
+    expect(gameboard.board[5][6].ship).toBe(ship);
+    expect(gameboard.board[5][7].ship).toBe(ship);
+  });
+
+  it('moves a ship one square over', () => {
+    const { gameboard, ship, orientation } = setup('Destroyer', 'horizontal');
+
+    gameboard.placeShip(ship, [0, 0], orientation);
+
+    expect(gameboard.moveShip([0, 0], [0, 1])).toBe(true);
+
+    expect(gameboard.board[0][1].ship).toBe(ship);
+    expect(gameboard.board[0][2].ship).toBe(ship);
+    expect(gameboard.board[0][3].ship).toBe(ship);
+  });
+
+  it('does not move a ship out of bounds', () => {
+    const { gameboard, ship, orientation } = setup('Destroyer', 'horizontal');
+
+    gameboard.placeShip(ship, [0, 0], orientation);
+
+    expect(gameboard.moveShip([0, 0], [15, 15])).toBe(false);
+  });
+
+  it('does not move ship in case of unsuccessful move', () => {
+    const { gameboard, ship, orientation } = setup('Destroyer', 'horizontal');
+
+    gameboard.placeShip(ship, [0, 0], orientation);
+
+    expect(gameboard.moveShip([0, 0], [15, 15])).toBe(false);
+
+    expect(gameboard.board[0][0].ship).toBe(ship);
+    expect(gameboard.board[0][1].ship).toBe(ship);
+    expect(gameboard.board[0][2].ship).toBe(ship);
+  });
+
+  it('does not overlap ships', () => {
+    const { gameboard, ship, orientation } = setup('Destroyer', 'horizontal');
+    const ship2 = new Ship('Carrier');
 
     gameboard.placeShip(ship, [0, 0], orientation);
     gameboard.placeShip(ship2, [5, 5], orientation);
