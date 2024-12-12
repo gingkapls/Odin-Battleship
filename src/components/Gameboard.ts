@@ -3,7 +3,7 @@ import { Cell } from './Cell';
 
 type Pos = [number, number];
 
-export type shipOrientation = 'vertical' | 'horizontal';
+export type ShipOrientation = 'vertical' | 'horizontal';
 
 interface Location {
   ship: Ship;
@@ -100,7 +100,7 @@ export class Gameboard {
   static #vectorizeCoords(
     length: number,
     [row, col]: Pos,
-    orientation: shipOrientation,
+    orientation: ShipOrientation,
   ) {
     const vectorized: { horizontal: Pos; vertical: Pos } = {
       horizontal: [row, col + length - 1],
@@ -116,7 +116,7 @@ export class Gameboard {
   placeShip(
     ship: Ship,
     [row, col]: Pos,
-    orientation: shipOrientation,
+    orientation: ShipOrientation,
   ): boolean {
     const { areaStart, areaEnd } = Gameboard.#vectorizeCoords(
       ship.length,
@@ -159,7 +159,7 @@ export class Gameboard {
   static #getShipOrientation(
     [rowStart, colStart]: Pos,
     [rowEnd, colEnd]: Pos,
-  ): shipOrientation {
+  ): ShipOrientation {
     const height = Math.abs(rowEnd - rowStart);
     const width = Math.abs(colEnd - colStart);
 
@@ -195,7 +195,7 @@ export class Gameboard {
     // Remove old ship to handle overlaps
     const { ship, start, end } = this.removeShip([row, col]);
     const oldOrientation = Gameboard.#getShipOrientation(start, end);
-    const newOrientation: shipOrientation =
+    const newOrientation: ShipOrientation =
       oldOrientation === 'horizontal' ? 'vertical' : 'horizontal';
 
     const { areaStart: newAreaStart, areaEnd: newAreaEnd } =
@@ -228,6 +228,6 @@ export class Gameboard {
 
   get areAllSunk(): boolean {
     // Check every placed ship's sunk status
-    return this.locations.every(loc => loc.ship.isSunk);
+    return this.locations.every((loc) => loc.ship.isSunk);
   }
 }

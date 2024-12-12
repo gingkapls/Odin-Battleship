@@ -1,10 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
-import { Gameboard, shipOrientation } from '../src/components/Gameboard';
+import { Gameboard, ShipOrientation } from '../src/components/Gameboard';
 import { Ship, ShipType } from '../src/components/Ship';
 
 const setup = (
   type: ShipType = 'Submarine',
-  orientation: shipOrientation = 'horizontal',
+  orientation: ShipOrientation = 'horizontal',
 ) => ({
   gameboard: new Gameboard(),
   ship: new Ship(type),
@@ -76,7 +76,7 @@ describe('receiveAttack()', () => {
   it('receives an attack', () => {
     const { gameboard, ship, orientation } = setup('Destroyer', 'horizontal');
     gameboard.placeShip(ship, [0, 0], orientation);
-    expect(gameboard.receiveAttack([0, 0])).toBe(true);
+    expect(gameboard.receiveAttack([0, 0])).toBe('success');
     expect(gameboard.board[0][0].isHit).toBe(true);
 
     expect(gameboard.board[0][1].ship.hits).toBe(1);
@@ -84,14 +84,14 @@ describe('receiveAttack()', () => {
 
   it('does not receive an out of bound attack', () => {
     const { gameboard } = setup('Destroyer', 'horizontal');
-    expect(gameboard.receiveAttack([11, 10])).toBe(false);
+    expect(gameboard.receiveAttack([11, 10])).toBe('invalid');
   });
 
   it('does not receive attacks on the same cell more than once', () => {
     const { gameboard, ship, orientation } = setup('Destroyer', 'horizontal');
     gameboard.placeShip(ship, [0, 0], orientation);
-    expect(gameboard.receiveAttack([0, 0])).toBe(true);
-    expect(gameboard.receiveAttack([0, 0])).toBe(false);
+    expect(gameboard.receiveAttack([0, 0])).toBe('success');
+    expect(gameboard.receiveAttack([0, 0])).toBe('invalid');
     expect(gameboard.board[0][2].ship.hits).toBe(1);
   });
 
@@ -99,8 +99,8 @@ describe('receiveAttack()', () => {
     const { gameboard, ship, orientation } = setup('Destroyer', 'horizontal');
     gameboard.placeShip(ship, [0, 0], orientation);
 
-    expect(gameboard.receiveAttack([0, 0])).toBe(true);
-    expect(gameboard.receiveAttack([0, 1])).toBe(true);
+    expect(gameboard.receiveAttack([0, 0])).toBe('success');
+    expect(gameboard.receiveAttack([0, 1])).toBe('success');
     expect(gameboard.board[0][0].ship.hits).toBe(2);
   });
 });
@@ -198,7 +198,7 @@ describe('moveShip()', () => {
 });
 
 describe('rotateShip()', () => {
-  it('rotates a ship', () => {
+  it('rotates a ship vertically', () => {
     const { gameboard, ship, orientation } = setup('Destroyer', 'horizontal');
     gameboard.placeShip(ship, [0, 0], orientation);
     expect(gameboard.rotateShip([0, 0])).toBe(true);
@@ -211,6 +211,21 @@ describe('rotateShip()', () => {
     // Original coords
     expect(gameboard.board[0][1].ship).toBe(null);
     expect(gameboard.board[0][2].ship).toBe(null);
+  });
+
+  it('rotates a ship horizontally', () => {
+    const { gameboard, ship, orientation } = setup('Destroyer', 'vertical');
+    gameboard.placeShip(ship, [0, 0], orientation);
+    expect(gameboard.rotateShip([0, 0])).toBe(true);
+
+    // New coords
+    expect(gameboard.board[0][0].ship).toBe(ship);
+    expect(gameboard.board[0][1].ship).toBe(ship);
+    expect(gameboard.board[0][2].ship).toBe(ship);
+
+    // Original coords
+    expect(gameboard.board[1][0].ship).toBe(null);
+    expect(gameboard.board[2][0].ship).toBe(null);
   });
 
   it('does not rotate ship when there is not enough space', () => {
@@ -254,18 +269,16 @@ describe('allSunk()', () => {
     const ship2 = new Ship('Destroyer');
     gameboard.placeShip(ship, [0, 0], orientation);
     gameboard.placeShip(ship2, [2, 0], orientation);
-    
-    
+
     // Sinking ship 1
     gameboard.receiveAttack([0, 0]);
     gameboard.receiveAttack([0, 1]);
     gameboard.receiveAttack([0, 2]);
 
-     // Sinking ship 2
+    // Sinking ship 2
     gameboard.receiveAttack([2, 0]);
     gameboard.receiveAttack([2, 1]);
     gameboard.receiveAttack([2, 2]);
-    
 
     expect(gameboard.areAllSunk).toBe(true);
   });
