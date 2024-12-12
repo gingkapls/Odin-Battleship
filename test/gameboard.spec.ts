@@ -197,6 +197,40 @@ describe('moveShip()', () => {
   });
 });
 
+describe('rotateShip()', () => {
+  it('rotates a ship', () => {
+    const { gameboard, ship, orientation } = setup('Destroyer', 'horizontal');
+    gameboard.placeShip(ship, [0, 0], orientation);
+    expect(gameboard.rotateShip([0, 0])).toBe(true);
+
+    // New coords
+    expect(gameboard.board[0][0].ship).toBe(ship);
+    expect(gameboard.board[1][0].ship).toBe(ship);
+    expect(gameboard.board[2][0].ship).toBe(ship);
+
+    // Original coords
+    expect(gameboard.board[0][1].ship).toBe(null);
+    expect(gameboard.board[0][2].ship).toBe(null);
+  });
+
+  it('does not rotate ship when there is not enough space', () => {
+    const { gameboard, ship, orientation } = setup('Destroyer', 'horizontal');
+    const ship2 = new Ship('Destroyer');
+    gameboard.placeShip(ship, [0, 0], orientation);
+    gameboard.placeShip(ship2, [2, 0], orientation);
+
+    expect(gameboard.rotateShip([0, 0])).toBe(false);
+    // Original coordinates
+    expect(gameboard.board[0][0].ship).toBe(ship);
+    expect(gameboard.board[0][1].ship).toBe(ship);
+    expect(gameboard.board[0][2].ship).toBe(ship);
+
+    // New coordinates
+    expect(gameboard.board[1][0].ship).toBe(null);
+    expect(gameboard.board[2][0].ship).toBe(ship2);
+  });
+});
+
 // TODO: add tests
 describe.skip('allSunk()', () => {
   it('returns false when no ships are sunk', () => {

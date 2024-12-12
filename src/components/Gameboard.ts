@@ -200,6 +200,27 @@ export class Gameboard {
     return true;
   }
 
+  rotateShip([row, col]: Pos): boolean {
+    // Remove old ship to handle overlaps
+    const { ship, start, end } = this.removeShip([row, col]);
+    const oldOrientation = Gameboard.#getShipOrientation(start, end);
+    const newOrientation: shipOrientation =
+      oldOrientation === 'horizontal' ? 'vertical' : 'horizontal';
+
+    const { areaStart: newAreaStart, areaEnd: newAreaEnd } =
+      Gameboard.#vectorizeCoords(ship.length, [row, col], newOrientation);
+
+    if (this.isAreaEmpty(newAreaStart, newAreaEnd)) {
+      // Ship can be rotated
+      this.placeShip(ship, [row, col], newOrientation);
+      return true;
+    } else {
+      // Place back into original orientation if not enough space
+      this.placeShip(ship, [row, col], oldOrientation);
+      return false;
+    }
+  }
+
   receiveAttack([row, col]: Pos): boolean {
     // TODO: indicate missed hits
     if (!this.#isValidPos([row, col])) return false;
