@@ -235,10 +235,8 @@ export class Gameboard {
     return true;
   }
 
-  allSunk(): boolean {
-    // TODO: implement
-    // There exists a ship that isn't sunk
-    // return this.ships.some((ship) => !ship.isSunk);
-    return false;
+  get areAllSunk(): boolean {
+    // Check every placed ship's sunk status
+    return this.locations.every(loc => loc.ship.isSunk);
   }
 }

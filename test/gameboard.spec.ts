@@ -232,19 +232,41 @@ describe('rotateShip()', () => {
 });
 
 // TODO: add tests
-describe.skip('allSunk()', () => {
+describe('allSunk()', () => {
   it('returns false when no ships are sunk', () => {
     const { gameboard, ship, orientation } = setup('Destroyer', 'horizontal');
     gameboard.placeShip(ship, [0, 3], orientation);
-    expect(gameboard.allSunk).toBe(false);
+    expect(gameboard.areAllSunk).toBe(false);
   });
 
-  it('returns false when one ship is sunk', () => {
+  it('returns true when the only ship is sunk', () => {
     const { gameboard, ship, orientation } = setup('Destroyer', 'horizontal');
-    gameboard.placeShip(ship, [0, 3], orientation);
-    gameboard.receiveAttack([0, 3]);
-    gameboard.receiveAttack([0, 4]);
-    gameboard.receiveAttack([0, 5]);
-    expect(gameboard.allSunk).toBe(false);
+    gameboard.placeShip(ship, [0, 0], orientation);
+
+    gameboard.receiveAttack([0, 0]);
+    gameboard.receiveAttack([0, 1]);
+    gameboard.receiveAttack([0, 2]);
+    expect(gameboard.areAllSunk).toBe(true);
+  });
+
+  it('returns true when the all the ships are sunk', () => {
+    const { gameboard, ship, orientation } = setup('Destroyer', 'horizontal');
+    const ship2 = new Ship('Destroyer');
+    gameboard.placeShip(ship, [0, 0], orientation);
+    gameboard.placeShip(ship2, [2, 0], orientation);
+    
+    
+    // Sinking ship 1
+    gameboard.receiveAttack([0, 0]);
+    gameboard.receiveAttack([0, 1]);
+    gameboard.receiveAttack([0, 2]);
+
+     // Sinking ship 2
+    gameboard.receiveAttack([2, 0]);
+    gameboard.receiveAttack([2, 1]);
+    gameboard.receiveAttack([2, 2]);
+    
+
+    expect(gameboard.areAllSunk).toBe(true);
   });
 });
