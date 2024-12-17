@@ -3,7 +3,6 @@ import { Cell } from './Cell';
 
 type Pos = [number, number];
 
-export type ShipOrientation = 'vertical' | 'horizontal';
 type AttackResult = 'success' | 'miss' | 'invalid';
 
 interface Location {
@@ -30,6 +29,13 @@ export class Gameboard {
 
   get board(): readonly Cell[][] {
     return Object.freeze(this.#board);
+  }
+
+  get rows() {
+    return this.#rows;
+  }
+  get cols() {
+    return this.#cols;
   }
 
   /**
@@ -98,32 +104,20 @@ export class Gameboard {
     this.locations = this.locations.toSpliced(idx, 1);
   }
 
-  static #vectorizeCoords(
-    length: number,
-    [row, col]: Pos,
-    orientation: ShipOrientation,
-  ) {
+  static #vectorizeCoords(ship: Ship, [row, col]: Pos) {
     const vectorized: { horizontal: Pos; vertical: Pos } = {
-      horizontal: [row, col + length - 1],
-      vertical: [row + length - 1, col],
+      horizontal: [row, col + ship.length - 1],
+      vertical: [row + ship.length - 1, col],
     };
 
     return {
       areaStart: [row, col] as Pos,
-      areaEnd: vectorized[orientation] as Pos,
+      areaEnd: vectorized[ship.orientation] as Pos,
     };
   }
 
-  placeShip(
-    ship: Ship,
-    [row, col]: Pos,
-    orientation: ShipOrientation,
-  ): boolean {
-    const { areaStart, areaEnd } = Gameboard.#vectorizeCoords(
-      ship.length,
-      [row, col],
-      orientation,
-    );
+  placeShip(ship: Ship, [row, col]: Pos): boolean {
+    const { areaStart, areaEnd } = Gameboard.#vectorizeCoords(ship, [row, col]);
 
     // length - 1 because our board is 0 indexing
     if (!this.isAreaEmpty(areaStart, areaEnd)) return false;
@@ -157,58 +151,45 @@ export class Gameboard {
     return location;
   }
 
-  static #getShipOrientation(
-    [rowStart, colStart]: Pos,
-    [rowEnd, colEnd]: Pos,
-  ): ShipOrientation {
-    const height = Math.abs(rowEnd - rowStart);
-    const width = Math.abs(colEnd - colStart);
-
-    return height < width ? 'horizontal' : 'vertical';
-  }
-
   moveShip([rowSrc, colSrc]: Pos, [rowDest, colDest]: Pos): boolean {
     // Fetch ship details
-    const { ship, start, end } = this.#findShipByPos([rowSrc, colSrc]);
-    const orientation = Gameboard.#getShipOrientation(start, end);
+    const { ship, start } = this.#findShipByPos([rowSrc, colSrc]);
 
     // Remove ship to handle the case where we overlap it with its original position
     this.removeShip([rowSrc, colSrc]);
 
-    const { areaStart, areaEnd } = Gameboard.#vectorizeCoords(
-      ship.length,
-      [rowDest, colDest],
-      orientation,
-    );
+    const { areaStart, areaEnd } = Gameboard.#vectorizeCoords(ship, [
+      rowDest,
+      colDest,
+    ]);
 
     // Early return if destination area isn't empty
     // Replace ship at original position
     if (this.isAreaEmpty(areaStart, areaEnd) === false) {
-      this.placeShip(ship, start, orientation);
+      this.placeShip(ship, start);
       return false;
     }
 
-    this.placeShip(ship, [rowDest, colDest], orientation);
+    this.placeShip(ship, [rowDest, colDest]);
     return true;
   }
 
   rotateShip([row, col]: Pos): boolean {
     // Remove old ship to handle overlaps
-    const { ship, start, end } = this.removeShip([row, col]);
-    const oldOrientation = Gameboard.#getShipOrientation(start, end);
-    const newOrientation: ShipOrientation =
-      oldOrientation === 'horizontal' ? 'vertical' : 'horizontal';
+    const { ship } = this.removeShip([row, col]);
+    ship.toggleOrientation();
 
     const { areaStart: newAreaStart, areaEnd: newAreaEnd } =
-      Gameboard.#vectorizeCoords(ship.length, [row, col], newOrientation);
+      Gameboard.#vectorizeCoords(ship, [row, col]);
 
     if (this.isAreaEmpty(newAreaStart, newAreaEnd)) {
       // Ship can be rotated
-      this.placeShip(ship, [row, col], newOrientation);
+      this.placeShip(ship, [row, col]);
       return true;
     } else {
       // Place back into original orientation if not enough space
-      this.placeShip(ship, [row, col], oldOrientation);
+      ship.toggleOrientation();
+      this.placeShip(ship, [row, col]);
       return false;
     }
   }
