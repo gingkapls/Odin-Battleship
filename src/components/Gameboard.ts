@@ -1,9 +1,9 @@
 import { Ship } from './Ship';
 import { Cell } from './Cell';
 
-type Pos = [number, number];
+export type Pos = [number, number];
 
-type AttackResult = 'success' | 'miss' | 'invalid';
+export type AttackResult = 'success' | 'miss' | 'invalid';
 
 interface Location {
   ship: Ship;
@@ -104,7 +104,7 @@ export class Gameboard {
     this.locations = this.locations.toSpliced(idx, 1);
   }
 
-  static #vectorizeCoords(ship: Ship, [row, col]: Pos) {
+  static vectorizeCoords(ship: Ship, [row, col]: Pos) {
     const vectorized: { horizontal: Pos; vertical: Pos } = {
       horizontal: [row, col + ship.length - 1],
       vertical: [row + ship.length - 1, col],
@@ -116,8 +116,13 @@ export class Gameboard {
     };
   }
 
+  canPlaceShip(ship: Ship, [row, col]: Pos): boolean {
+    const { areaStart, areaEnd } = Gameboard.vectorizeCoords(ship, [row, col]);
+    return this.isAreaEmpty(areaStart, areaEnd);
+  }
+
   placeShip(ship: Ship, [row, col]: Pos): boolean {
-    const { areaStart, areaEnd } = Gameboard.#vectorizeCoords(ship, [row, col]);
+    const { areaStart, areaEnd } = Gameboard.vectorizeCoords(ship, [row, col]);
 
     // length - 1 because our board is 0 indexing
     if (!this.isAreaEmpty(areaStart, areaEnd)) return false;
@@ -158,7 +163,7 @@ export class Gameboard {
     // Remove ship to handle the case where we overlap it with its original position
     this.removeShip([rowSrc, colSrc]);
 
-    const { areaStart, areaEnd } = Gameboard.#vectorizeCoords(ship, [
+    const { areaStart, areaEnd } = Gameboard.vectorizeCoords(ship, [
       rowDest,
       colDest,
     ]);
@@ -180,7 +185,7 @@ export class Gameboard {
     ship.toggleOrientation();
 
     const { areaStart: newAreaStart, areaEnd: newAreaEnd } =
-      Gameboard.#vectorizeCoords(ship, [row, col]);
+      Gameboard.vectorizeCoords(ship, [row, col]);
 
     if (this.isAreaEmpty(newAreaStart, newAreaEnd)) {
       // Ship can be rotated
