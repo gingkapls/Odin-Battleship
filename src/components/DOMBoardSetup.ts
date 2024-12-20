@@ -4,6 +4,7 @@ import { Player } from './Player';
 import { Ship } from './Ship';
 
 export class DOMBoardSetup {
+  #container: HTMLElement;
   boardEl: HTMLDivElement;
   attackButton: HTMLButtonElement;
   shipContainer: HTMLDivElement;
@@ -13,14 +14,20 @@ export class DOMBoardSetup {
   player: Player;
   gameboard: Gameboard;
 
-  constructor(player: Player, eventHandlers: DragAndDropHandler) {
+  constructor(
+    player: Player,
+    eventHandlers: DragAndDropHandler,
+    container: HTMLElement,
+  ) {
     this.gameboard = player.gameboard;
     this.player = player;
-    this.boardEl = this.#createBoard(player.gameboard);
-    this.shipContainer = this.#createShipContainer();
     this.eventHandlers = eventHandlers;
+    this.#container = container;
 
+    this.shipContainer = this.#createShipContainer();
+    this.boardEl = this.#createBoard(player.gameboard);
     this.#addShipsToContainer(this.player.ships);
+    this.#container.replaceChildren(this.shipContainer, this.boardEl);
   }
 
   #addShipsToContainer(shipArray: Ship[]): void {
@@ -29,7 +36,7 @@ export class DOMBoardSetup {
       this.shipContainer.appendChild(shipEl);
     });
   }
-  
+
   #createShipContainer(): HTMLDivElement {
     const container = document.createElement('div');
     container.classList.add('ship-container');
@@ -39,6 +46,7 @@ export class DOMBoardSetup {
   #createBoard(board: Gameboard): HTMLDivElement {
     const boardEl = document.createElement('div');
     boardEl.classList.add('board');
+    boardEl.draggable = false;
 
     for (let row = 0; row < board.rows; ++row) {
       for (let col = 0; col < board.cols; ++col) {
@@ -49,9 +57,15 @@ export class DOMBoardSetup {
         boardEl.appendChild(cell);
       }
     }
-    
-    boardEl.addEventListener("dragover", this.eventHandlers.boardDragOverHandler)
-    boardEl.addEventListener("dragover", this.eventHandlers.boardDragOverHandler)
+
+    boardEl.addEventListener(
+      'drop',
+      this.eventHandlers.boardDragOverHandler.bind(this.eventHandlers),
+    );
+    boardEl.addEventListener(
+      'dragover',
+      this.eventHandlers.boardDragOverHandler.bind(this.eventHandlers),
+    );
 
     return boardEl;
   }
@@ -64,11 +78,20 @@ export class DOMBoardSetup {
     shipEl.style.width = `${ship.length * 3}rem`;
 
     // Drag and drop
-    shipEl.addEventListener('dragstart', this.eventHandlers.shipDragStartHandler);
-    shipEl.addEventListener('dragend', this.eventHandlers.shipDragEndHandler);
+    shipEl.addEventListener(
+      'dragstart',
+      this.eventHandlers.shipDragStartHandler.bind(this.eventHandlers),
+    );
+    shipEl.addEventListener(
+      'dragend',
+      this.eventHandlers.shipDragEndHandler.bind(this.eventHandlers),
+    );
 
     // Rotate on click
-    shipEl.addEventListener('click', this.eventHandlers.shipClickHandler);
+    shipEl.addEventListener(
+      'click',
+      this.eventHandlers.shipClickHandler.bind(this.eventHandlers),
+    );
     return shipEl;
   };
 }
