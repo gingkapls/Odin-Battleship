@@ -18,7 +18,7 @@ export class Ship {
   #id: string;
   #orientation: ShipOrientation;
 
-  constructor(type: ShipType, orientation: ShipOrientation) {
+  constructor(type: ShipType, orientation: ShipOrientation = "horizontal") {
     this.length = SHIP_LENGTH[type];
     this.#hits = 0;
     this.#id = `S-${Math.floor(Math.random() * 1024).toString(16)}`;
