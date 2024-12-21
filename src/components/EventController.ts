@@ -1,6 +1,6 @@
 import { Player } from './Player';
 
-export class DragAndDropHandler {
+export class EventController {
   player: Player;
 
   constructor(player: Player) {
@@ -104,4 +104,5 @@ export class DragAndDropHandler {
     shipEl.style.height = oldWidth;
     shipEl.style.width = oldHeight;
   }
+  
 }

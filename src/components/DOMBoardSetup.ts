@@ -1,5 +1,6 @@
-import { DragAndDropHandler } from './DragAndDropHandler';
+import { EventController } from './EventController';
 import { Gameboard } from './Gameboard';
+import { GameController } from './GameController';
 import { Player } from './Player';
 import { Ship } from './Ship';
 
@@ -10,13 +11,14 @@ export class DOMBoardSetup {
   shipContainer: HTMLDivElement;
   ships: HTMLDivElement[];
   resetButton: HTMLButtonElement;
-  eventHandlers: DragAndDropHandler;
+  eventHandlers: EventController;
+  gameController: GameController;
   player: Player;
   gameboard: Gameboard;
 
   constructor(
     player: Player,
-    eventHandlers: DragAndDropHandler,
+    eventHandlers: EventController,
     container: HTMLElement,
   ) {
     this.gameboard = player.gameboard;
@@ -69,13 +71,14 @@ export class DOMBoardSetup {
 
     return boardEl;
   }
-
+  
   #createShipElement = (ship: Ship): HTMLElement => {
     const shipEl = document.createElement('div');
+    const cellSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--cell-size-unitless"));
     shipEl.classList.add('ship');
     shipEl.id = ship.id;
     shipEl.draggable = true;
-    shipEl.style.width = `${ship.length * 3}rem`;
+    shipEl.style.width = `${ship.length * cellSize}rem`;
 
     // Drag and drop
     shipEl.addEventListener(
