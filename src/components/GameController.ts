@@ -27,15 +27,8 @@ export class GameController {
     GameController.#instance = this;
   }
 
-  isPlayerReady(player: Player): boolean {
-    return player.ships.length === player.gameboard.locations.length;
-  }
-
   get isGameReady(): boolean {
-    const isPlayer1Ready = this.isPlayerReady(this.#player1);
-    const isPlayer2Ready = this.isPlayerReady(this.#player2);
-
-    return isPlayer1Ready && isPlayer2Ready;
+    return this.#player1.isReady && this.#player2.isReady;
   }
 
   startGame(): void {

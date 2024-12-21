@@ -27,6 +27,10 @@ export class Player {
   get gameboard() {
     return this.#gameboard;
   }
+  
+  get isReady(): boolean {
+    return this.ships.length === this.#gameboard.locations.length;
+  }
 
   placeShip(ship: Ship, [row, col]: Pos) {
     const shipIndex = this.ships.indexOf(ship);
