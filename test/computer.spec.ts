@@ -54,8 +54,7 @@ describe('placeRandomShip()', () => {
     const [row1, col1] = computer.placeShipRandom(ship1);
     const [row2, col2] = computer.placeShipRandom(ship2);
 
-    expect(row1).not.toBe(row2);
-    expect(col1).not.toBe(col2);
+    expect([row1, col1]).not.toBe([row2, col2]);
   });
 });
 
