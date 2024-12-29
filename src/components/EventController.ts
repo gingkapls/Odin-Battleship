@@ -3,6 +3,8 @@ import { Player } from './Player';
 
 export class EventController {
   player: Player;
+  draggingShip: HTMLElement;
+  draggingShipParent: HTMLElement;
 
   constructor(player: Player) {
     this.player = player;
@@ -19,16 +21,16 @@ export class EventController {
 
     e.dataTransfer.dropEffect = 'move';
 
-    const id = e.dataTransfer.getData('text/plain');
+    // const id = e.dataTransfer.getData('text/plain');
+    if (!this.draggingShip) return;
+
     const [row, col] = [
       parseInt(e.target.dataset.row),
       parseInt(e.target.dataset.col),
     ];
 
-    // why is it an empty string sometimes?
-    if (id.length === 0) return;
-
-    const shipEl: HTMLElement = document.querySelector(`#${id}`);
+    // const shipEl: HTMLElement = document.querySelector(`#${id}`);
+    const shipEl: HTMLElement = this.draggingShip;
 
     // Don't assign node to same cell
     if (shipEl.parentElement === e.target.parentElement) return;
@@ -51,14 +53,18 @@ export class EventController {
     // why is it an empty string sometimes?
     if (data.length === 0) return;
 
-    // e.dataTransfer.dropEffect = 'move';
+    e.dataTransfer.dropEffect = 'move';
   }
 
   shipDragStartHandler(e: DragEvent): void {
     if (!(e.currentTarget instanceof HTMLElement)) return;
 
     e.dataTransfer.setData('text/plain', e.currentTarget.id);
-    const parent = e.currentTarget.parentElement;
+    // const parent = e.currentTarget.parentElement;
+
+    this.draggingShip = e.currentTarget;
+    this.draggingShipParent = e.currentTarget.parentElement;
+    const parent = this.draggingShipParent;
 
     if (!parent.classList.contains('grid-cell')) return;
 
@@ -81,14 +87,17 @@ export class EventController {
     const row = parseInt(shipEl.parentElement.dataset.row);
     const col = parseInt(shipEl.parentElement.dataset.col);
 
-    if (e.dataTransfer.dropEffect !== 'move') {
-      document.querySelector('.ship-container').append(shipEl);
-      return;
-    }
+    // if (e.dataTransfer.dropEffect !== 'move') {
+    // document.querySelector('.ship-container').append(shipEl);
+    // return;
+    // }
 
     if (this.player.gameboard.canPlaceShip(ship, [row, col])) {
       this.player.gameboard.placeShip(ship, [row, col]);
     }
+
+    this.draggingShip = null;
+    this.draggingShipParent = null;
   }
 
   shipClickHandler(e: Event) {
