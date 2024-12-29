@@ -3,9 +3,12 @@ import { Cell } from './Cell';
 
 export type Pos = [number, number];
 
-export type AttackResult = 'success' | 'miss' | 'invalid';
+export interface AttackResult {
+  pos: Pos;
+  status: 'success' | 'miss' | 'invalid';
+}
 
-interface Location {
+export interface Location {
   ship: Ship;
   start: Pos;
   end: Pos;
@@ -15,7 +18,7 @@ export class Gameboard {
   #board: Cell[][];
   #rows: number;
   #cols: number;
-  locations: Location[];
+  #locations: Location[];
 
   constructor([rows, cols]: [number, number] = [10, 10]) {
     this.#rows = rows;
@@ -24,7 +27,7 @@ export class Gameboard {
     this.#board = Array.from({ length: rows }, () =>
       Array.from({ length: cols }, () => new Cell()),
     );
-    this.locations = [];
+    this.#locations = [];
   }
 
   get board(): readonly Cell[][] {
@@ -50,7 +53,7 @@ export class Gameboard {
   }
 
   #findShipByPos([row, col]: Pos): Location {
-    return this.locations.find(
+    return this.#locations.find(
       (loc) =>
         Gameboard.#isInRange(row, [loc.start[0], loc.end[0] + 1]) && // +1 because upper bound is exclusive
         Gameboard.#isInRange(col, [loc.start[1], loc.end[1] + 1]), // row,col coords of ship
@@ -94,14 +97,14 @@ export class Gameboard {
   }
 
   #registerShip(ship: Ship, start: Pos, end: Pos): void {
-    this.locations.push({ ship, start, end } as Location);
+    this.#locations.push({ ship, start, end } as Location);
   }
 
   #deregisterShip(ship: Ship): void {
-    const idx = this.locations.findIndex((location) =>
+    const idx = this.#locations.findIndex((location) =>
       Object.is(location.ship, ship),
     );
-    this.locations = this.locations.toSpliced(idx, 1);
+    this.#locations = this.#locations.toSpliced(idx, 1);
   }
 
   static vectorizeCoords(ship: Ship, [row, col]: Pos) {
@@ -200,22 +203,33 @@ export class Gameboard {
   }
 
   receiveAttack([row, col]: Pos): AttackResult {
+    const res: AttackResult = { pos: [row, col], status: 'invalid' };
     // TODO: indicate missed hits
-    if (!this.#isValidPos([row, col])) return 'invalid';
+    if (!this.#isValidPos([row, col])) {
+      return res;
+    }
 
     const cell = this.#board[row][col];
 
-    if (cell.isHit) return 'invalid';
+    if (cell.isHit) return res;
 
     cell.isHit = true;
-    if (cell.ship === null) return 'miss';
+    if (cell.ship === null) {
+      res.status = 'miss';
+      return res;
+    }
 
     cell.ship.hit();
-    return 'success';
+    res.status = 'success';
+    return res;
+  }
+  
+  get locations() {
+    return this.#locations;
   }
 
   get areAllSunk(): boolean {
     // Check every placed ship's sunk status
-    return this.locations.every((loc) => loc.ship.isSunk);
+    return this.#locations.every((loc) => loc.ship.isSunk);
   }
 }

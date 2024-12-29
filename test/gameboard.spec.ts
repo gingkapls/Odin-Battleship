@@ -75,7 +75,7 @@ describe('receiveAttack()', () => {
   it('receives an attack', () => {
     const { gameboard, ship } = setup('Destroyer', 'horizontal');
     gameboard.placeShip(ship, [0, 0]);
-    expect(gameboard.receiveAttack([0, 0])).toBe('success');
+    expect(gameboard.receiveAttack([0, 0]).status).toBe('success');
     expect(gameboard.board[0][0].isHit).toBe(true);
 
     expect(gameboard.board[0][1].ship.hits).toBe(1);
@@ -83,14 +83,14 @@ describe('receiveAttack()', () => {
 
   it('does not receive an out of bound attack', () => {
     const { gameboard } = setup('Destroyer', 'horizontal');
-    expect(gameboard.receiveAttack([11, 10])).toBe('invalid');
+    expect(gameboard.receiveAttack([11, 10]).status).toBe('invalid');
   });
 
   it('does not receive attacks on the same cell more than once', () => {
     const { gameboard, ship } = setup('Destroyer', 'horizontal');
     gameboard.placeShip(ship, [0, 0]);
-    expect(gameboard.receiveAttack([0, 0])).toBe('success');
-    expect(gameboard.receiveAttack([0, 0])).toBe('invalid');
+    expect(gameboard.receiveAttack([0, 0]).status).toBe('success');
+    expect(gameboard.receiveAttack([0, 0]).status).toBe('invalid');
     expect(gameboard.board[0][2].ship.hits).toBe(1);
   });
 
@@ -98,8 +98,8 @@ describe('receiveAttack()', () => {
     const { gameboard, ship } = setup('Destroyer', 'horizontal');
     gameboard.placeShip(ship, [0, 0]);
 
-    expect(gameboard.receiveAttack([0, 0])).toBe('success');
-    expect(gameboard.receiveAttack([0, 1])).toBe('success');
+    expect(gameboard.receiveAttack([0, 0]).status).toBe('success');
+    expect(gameboard.receiveAttack([0, 1]).status).toBe('success');
     expect(gameboard.board[0][0].ship.hits).toBe(2);
   });
 });
