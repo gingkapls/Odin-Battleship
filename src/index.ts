@@ -33,7 +33,6 @@ gameController.subscribe('changeTurn', (player: Player) => {
 });
 
 gameController.subscribe('gameEnd', (result: GameResult) => {
-  console.log('game ended', result);
   viewController.handleGameEnd(result);
 });
 
@@ -48,10 +47,8 @@ gameController.subscribe('changeTurn', (player: Player) => {
 
   setTimeout(() => {
 
-  console.log('computer turn');
-  const status = gameController.playComputerTurn()
+  gameController.playComputerTurn()
   gameController.toggleTurn();
-  console.log('computer attack', status);
 
   }, 500)
 })

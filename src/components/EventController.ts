@@ -17,7 +17,6 @@ export class EventController {
       return;
     }
 
-    // console.log('a cell', e.target);
     e.dataTransfer.dropEffect = 'move';
 
     const id = e.dataTransfer.getData('text/plain');
@@ -36,7 +35,6 @@ export class EventController {
 
     const ship = this.player.ships.find((ship) => ship.id === shipEl.id);
 
-    // console.log(ship, row, col);
     if (!this.player.gameboard.canPlaceShip(ship, [row, col])) return;
 
     shipEl.classList.add('dragging');
@@ -49,7 +47,6 @@ export class EventController {
     if (!e.target.classList.contains('grid-cell')) return;
 
     const data = e.dataTransfer.getData('text/plain');
-    console.log('drop', data);
 
     // why is it an empty string sometimes?
     if (data.length === 0) return;
@@ -108,7 +105,6 @@ export class EventController {
     const status = this.player.gameboard.rotateShip([row, col]);
 
     if (!status) return;
-    console.log('shipClick', shipEl, status);
 
     const oldHeight = shipEl.style.height;
     const oldWidth = shipEl.style.width;
@@ -143,17 +139,9 @@ export class EventController {
       parseInt(e.target.dataset.col),
     ];
 
-    console.log(row, col);
-    console.log('current turn:', gameController.currentTurn);
-    console.log('next turn:', gameController.nextTurn);
-    console.log('player:', player);
-
     const res = gameController.attackPlayer(player, [row, col]);
 
     if (res.status === 'invalid') return;
-    // if (res.status === 'miss') e.target.classList.add('hit-miss');
-    // if (res.status === 'success') e.target.classList.add('hit-success');
-    // console.log('hit', res);
 
     if (player.gameboard.areAllSunk) {
       gameController.endGame();

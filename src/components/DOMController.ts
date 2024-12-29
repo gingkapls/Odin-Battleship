@@ -50,7 +50,6 @@ export class DOMController {
   }
 
   toggleBoardOpacity(currentPlayer: Player) {
-    console.log(currentPlayer);
     const currentBoard = this.#getBoardByPlayer(currentPlayer);
     const otherBoard = this.#getBoardByPlayer(gameController.nextTurn);
 
@@ -93,7 +92,6 @@ export class DOMController {
       if (gameController.isComputerEnabled) {
         gameController.computer.placeAllShips();
         gameController.readyPlayer(gameController.computer.player);
-        console.log(gameController.isGameReady);
       } else {
         this.player2Board.showBoard();
       }
@@ -131,8 +129,7 @@ export class DOMController {
   toggleMode() {
     const computerEnabled = gameController.toggleComputer();
     this.player2Board.player.name = computerEnabled ? "Computer" : "Player 2";
-    console.log("computer is enabled: ", computerEnabled);
-    // this.btnMode.textContent = newMode === false ? '1P' : '2P';
+    this.displayMode();
   }
   
   displayMode() {
