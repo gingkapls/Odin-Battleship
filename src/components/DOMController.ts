@@ -21,7 +21,7 @@ export class DOMController {
     this.player2Board = player2Board;
     this.displayTurn(player1Board.player);
     this.btnMode = btnMode;
-    this.btnMode.addEventListener('click', this.toggleMode.bind(this));
+    this.btnMode.parentElement.addEventListener('click', this.toggleMode.bind(this));
     this.displayMode();
   }
 
