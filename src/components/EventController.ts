@@ -1,3 +1,4 @@
+import { gameController } from './GameController';
 import { Player } from './Player';
 
 export class EventController {
@@ -10,7 +11,14 @@ export class EventController {
   boardDragOverHandler(e: DragEvent): void {
     e.preventDefault();
     if (!(e.target instanceof HTMLElement)) return;
-    if (!e.target.classList.contains('grid-cell')) return;
+    if (!(e.currentTarget instanceof HTMLElement)) return;
+
+    if (!e.target.classList.contains('grid-cell')) {
+      return;
+    }
+
+    // console.log('a cell', e.target);
+    e.dataTransfer.dropEffect = 'move';
 
     const id = e.dataTransfer.getData('text/plain');
     const [row, col] = [
@@ -28,7 +36,7 @@ export class EventController {
 
     const ship = this.player.ships.find((ship) => ship.id === shipEl.id);
 
-    console.log(ship, row, col);
+    // console.log(ship, row, col);
     if (!this.player.gameboard.canPlaceShip(ship, [row, col])) return;
 
     shipEl.classList.add('dragging');
@@ -38,13 +46,15 @@ export class EventController {
   boardDropHandler(e: DragEvent): void {
     if (!(e.currentTarget instanceof HTMLElement)) return;
     if (!(e.target instanceof HTMLElement)) return;
+    if (!e.target.classList.contains('grid-cell')) return;
 
     const data = e.dataTransfer.getData('text/plain');
+    console.log('drop', data);
 
     // why is it an empty string sometimes?
     if (data.length === 0) return;
 
-    e.dataTransfer.dropEffect = 'move';
+    // e.dataTransfer.dropEffect = 'move';
   }
 
   shipDragStartHandler(e: DragEvent): void {
@@ -53,9 +63,10 @@ export class EventController {
     e.dataTransfer.setData('text/plain', e.currentTarget.id);
     const parent = e.currentTarget.parentElement;
 
-    if (parent.classList.contains('ship-container')) return;
+    if (!parent.classList.contains('grid-cell')) return;
 
     const [row, col] = [Number(parent.dataset.row), Number(parent.dataset.col)];
+
     this.player.gameboard.removeShip([row, col]);
   }
 
@@ -63,7 +74,9 @@ export class EventController {
     if (!(e.currentTarget instanceof HTMLElement)) return;
     if (!(e.target instanceof HTMLElement)) return;
 
-    console.log(e.dataTransfer.dropEffect);
+    // Fix overlapping ships accidentally being placed
+    if (!e.target.parentElement.classList.contains('grid-cell')) return;
+
     e.target.classList.remove('dragging');
     const shipEl = e.currentTarget;
 
@@ -71,22 +84,20 @@ export class EventController {
     const row = parseInt(shipEl.parentElement.dataset.row);
     const col = parseInt(shipEl.parentElement.dataset.col);
 
-    if (e.dataTransfer.dropEffect === 'none') {
-      const data = e.dataTransfer.getData('text/plain');
-      const ship = document.querySelector(`#${data}`);
-      document.querySelector('.ship-container').append(ship);
+    if (e.dataTransfer.dropEffect !== 'move') {
+      document.querySelector('.ship-container').append(shipEl);
       return;
     }
 
     if (this.player.gameboard.canPlaceShip(ship, [row, col])) {
       this.player.gameboard.placeShip(ship, [row, col]);
     }
-    console.log(this.player.gameboard);
   }
 
   shipClickHandler(e: Event) {
     const shipEl = e.target;
     if (!(shipEl instanceof HTMLElement)) return;
+    if (shipEl.classList.contains('dragging')) return;
     if (!shipEl.parentElement.classList.contains('grid-cell')) return;
 
     const [row, col] = [
@@ -97,6 +108,7 @@ export class EventController {
     const status = this.player.gameboard.rotateShip([row, col]);
 
     if (!status) return;
+    console.log('shipClick', shipEl, status);
 
     const oldHeight = shipEl.style.height;
     const oldWidth = shipEl.style.width;
@@ -104,5 +116,50 @@ export class EventController {
     shipEl.style.height = oldWidth;
     shipEl.style.width = oldHeight;
   }
-  
+
+  btnReadyHandler(e: Event): void {
+    if (!(e.currentTarget instanceof HTMLElement)) return;
+    if (!this.player.isReady) return;
+
+    // Hide ships
+    const ships: NodeListOf<HTMLElement> =
+      e.currentTarget.parentElement.querySelectorAll('.ship');
+
+    ships.forEach((ship) => ship.remove());
+
+    gameController.readyPlayer(this.player);
+    gameController.toggleTurn();
+  }
+
+  cellClickHandler(e: Event, player: Player) {
+    if (!(e.target instanceof HTMLElement)) return;
+    if (!gameController.isGameReady) return;
+    if (!e.target.classList.contains('grid-cell')) return;
+    // We want to click the other player's board
+    if (gameController.currentTurn === player) return;
+
+    const [row, col] = [
+      parseInt(e.target.dataset.row),
+      parseInt(e.target.dataset.col),
+    ];
+
+    console.log(row, col);
+    console.log('current turn:', gameController.currentTurn);
+    console.log('next turn:', gameController.nextTurn);
+    console.log('player:', player);
+
+    const res = gameController.attackPlayer(player, [row, col]);
+
+    if (res.status === 'invalid') return;
+    // if (res.status === 'miss') e.target.classList.add('hit-miss');
+    // if (res.status === 'success') e.target.classList.add('hit-success');
+    // console.log('hit', res);
+
+    if (player.gameboard.areAllSunk) {
+      gameController.endGame();
+      return;
+    }
+
+    gameController.toggleTurn();
+  }
 }
