@@ -1,18 +1,15 @@
 import { EventController } from './EventController';
 import { Gameboard } from './Gameboard';
-import { GameController } from './GameController';
 import { Player } from './Player';
 import { Ship } from './Ship';
 
-export class DOMBoardSetup {
-  #container: HTMLElement;
+export class DOMBoard {
+  container: HTMLElement;
   boardEl: HTMLDivElement;
-  attackButton: HTMLButtonElement;
+  btnReady: HTMLButtonElement;
   shipContainer: HTMLDivElement;
   ships: HTMLDivElement[];
-  resetButton: HTMLButtonElement;
   eventHandlers: EventController;
-  gameController: GameController;
   player: Player;
   gameboard: Gameboard;
 
@@ -24,12 +21,25 @@ export class DOMBoardSetup {
     this.gameboard = player.gameboard;
     this.player = player;
     this.eventHandlers = eventHandlers;
-    this.#container = container;
+    this.container = container;
+    
+    this.#initBoard();
+  }
 
+  #initBoard() {
     this.shipContainer = this.#createShipContainer();
-    this.boardEl = this.#createBoard(player.gameboard);
+    this.btnReady = this.#createReadyButton();
+    this.boardEl = this.#createBoard(this.player.gameboard);
     this.#addShipsToContainer(this.player.ships);
-    this.#container.replaceChildren(this.shipContainer, this.boardEl);
+    this.container.replaceChildren(
+      this.shipContainer,
+      this.boardEl,
+      this.btnReady,
+    );
+  }
+  
+  reset() {
+    this.#initBoard();
   }
 
   #addShipsToContainer(shipArray: Ship[]): void {
@@ -60,21 +70,54 @@ export class DOMBoardSetup {
       }
     }
 
-    boardEl.addEventListener(
+/*     boardEl.addEventListener(
       'drop',
-      this.eventHandlers.boardDragOverHandler.bind(this.eventHandlers),
-    );
+      this.eventHandlers.boardDropHandler.bind(this.eventHandlers),
+    ); */
     boardEl.addEventListener(
       'dragover',
       this.eventHandlers.boardDragOverHandler.bind(this.eventHandlers),
     );
+    boardEl.addEventListener('click', (e) =>
+      this.eventHandlers.cellClickHandler(e, this.player),
+    );
 
     return boardEl;
   }
-  
+
+  disableBoard() {
+    this.boardEl.style.pointerEvents = 'none';
+  }
+
+  showBoard(): void {
+    this.container.parentElement.style.display = 'flex';
+    this.boardEl.style.display = 'grid';
+  }
+
+  hideBoard(): void {
+    this.container.parentElement.style.display = 'none'
+    this.boardEl.style.display = 'none';
+  }
+
+  removeExtraElements() {
+    const elements: NodeListOf<HTMLElement> = this.container.querySelectorAll(
+      '.btn-ready, .ship-container',
+    );
+    elements.forEach((el) => el.remove());
+  }
+
+  removeShipElements(): void {
+    const ships = this.container.querySelectorAll('.ship');
+    ships.forEach((ship) => ship.remove());
+  }
+
   #createShipElement = (ship: Ship): HTMLElement => {
     const shipEl = document.createElement('div');
-    const cellSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--cell-size-unitless"));
+    const cellSize = parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue(
+        '--cell-size-unitless',
+      ),
+    );
     shipEl.classList.add('ship');
     shipEl.id = ship.id;
     shipEl.draggable = true;
@@ -97,4 +140,16 @@ export class DOMBoardSetup {
     );
     return shipEl;
   };
+
+  #createReadyButton(): HTMLButtonElement {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = 'Ready';
+    button.classList.add('btn-ready');
+    button.addEventListener(
+      'click',
+      this.eventHandlers.btnReadyHandler.bind(this.eventHandlers),
+    );
+    return button;
+  }
 }
