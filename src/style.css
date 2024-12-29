@@ -13,6 +13,7 @@
 }
 
 .board {
+  grid-area: board;
   justify-content: center;
   align-items: center;
   display: grid;
@@ -41,6 +42,7 @@ header {
   align-self: center;
   justify-self: center;
   font-size: 1.5rem;
+  border-radius: 12px;
 }
 
 .grid-cell {
@@ -69,11 +71,17 @@ header {
 .game-container {
   display: flex;
   justify-content: space-around;
+  margin: 5% 20%;
+  gap: 72px;
 }
 
 .board-container {
-  display: flex;
-  justify-content: space-around;
+  display: grid;
+  grid: 1fr 1fr / 1fr 2fr;
+  grid-template-areas:
+    'ship-container board'
+    '. btn-ready';
+    gap: 48px;
 }
 
 .player-container {
@@ -85,9 +93,23 @@ header {
 }
 
 .btn-ready {
+  grid-area: btn-ready;
+  justify-self: center;
+  appearance: none;
+  background-color: #688fe5;
+  color: white;
+  border-radius: 12px;
+  border: 8px outset #688fe5;
+  box-shadow: 4px 4px 8px 2px rgb(0 0 0 / 0.1);
+  font-size: 1.4rem;
+  font-weight: 700;
   width: min-content;
-  padding: 2px 12px;
+  padding: 2px 36px;
   height: 2lh;
+}
+
+.btn-ready:active {
+  border: 8px inset #688fe5;
 }
 
 #player2 {
@@ -113,7 +135,8 @@ header {
 }
 
 .ship-container {
-  min-width: 20%;
+  grid-area: ship-container;
+  min-width: 320px;
   flex: 0;
   display: flex;
   flex-wrap: wrap;
@@ -131,11 +154,12 @@ header {
   height: 2ch;
   aspect-ratio: 2;
   border: 4px solid grey;
-  border-radius: 16px;
+  border-radius: 18px;
   margin: 0 16px;
   text-align: center;
+  transition: transform ease-in-out 150ms;
   transform: translateX(-12px);
-  
+
   &:checked {
     transform: translateX(12px);
   }
